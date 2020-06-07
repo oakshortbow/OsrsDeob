@@ -122,13 +122,13 @@ public class InheritanceNode {
         return node;
     }
 
-    public Set<RSMethod> getMethodsInheritedFromJava(InheritanceNode node, Set<RSMethod> methodNodeList)
+    public Set<Method> getMethodsInheritedFromJava(InheritanceNode node, Set<Method> methodNodeList)
     {
         if(node.isJavaNode()) {
             for(MethodNode child: this.getMethods()) {
                 for(MethodNode parent : node.getMethods()) {
                     if(((child.name.equals(parent.name) && child.desc.equals(parent.desc)))) {
-                        methodNodeList.add(new RSMethod(this.getClassNode(), child));
+                        methodNodeList.add(new Method(this.getClassNode(), child));
                     }
                 }
             }
@@ -140,14 +140,14 @@ public class InheritanceNode {
         return methodNodeList;
     }
 
-    public Set<RSMethod> getMethodsImplementedFromJava(List<InheritanceNode> nodes, Set<RSMethod> methodNodeSet) {
+    public Set<Method> getMethodsImplementedFromJava(List<InheritanceNode> nodes, Set<Method> methodNodeSet) {
 
         for (InheritanceNode startingInterface : nodes) {
             if(startingInterface.isJavaNode()) {
                 for (MethodNode child : this.getMethods()) {
                     for (MethodNode parent : startingInterface.getMethods()) {
                         if (child.name.equals(parent.name) && child.desc.equals(parent.desc)) {
-                            methodNodeSet.add(new RSMethod(this.getClassNode(), child));
+                            methodNodeSet.add(new Method(this.getClassNode(), child));
                         }
                     }
                 }
@@ -162,15 +162,15 @@ public class InheritanceNode {
     }
 
 
-    public Set<RSField> getRelatedFields(String name, String descriptor) {
-        Set<RSField> fields = new HashSet<>();
+    public Set<Field> getRelatedFields(String name, String descriptor) {
+        Set<Field> fields = new HashSet<>();
         iterateFields(name, descriptor, fields);
         this.getSuperClassNode().iterateSuperclassFields(name, descriptor, fields);
         this.getSubClasses().forEach(f -> f.iterateSubclassFields(name, descriptor, fields));
         return fields;
     }
 
-    private void iterateSuperclassFields(String name, String descriptor, Set<RSField> fields) {
+    private void iterateSuperclassFields(String name, String descriptor, Set<Field> fields) {
         if(this.getName().equals(OBJECT)) {
             return;
         }
@@ -178,15 +178,15 @@ public class InheritanceNode {
         getSuperClassNode().iterateSuperclassFields(name, descriptor, fields);
     }
 
-    private void iterateSubclassFields(String name, String descriptor, Set<RSField> fields) {
+    private void iterateSubclassFields(String name, String descriptor, Set<Field> fields) {
         iterateFields(name, descriptor, fields);
         this.getSubClasses().forEach(node -> node.iterateSubclassFields(name, descriptor, fields));
     }
 
-    private void iterateFields(String name, String descriptor, Set<RSField> fields) {
+    private void iterateFields(String name, String descriptor, Set<Field> fields) {
         for(FieldNode f: this.getFields()) {
             if(f.name.equals(name) && f.desc.equals(descriptor)) {
-                fields.add(new RSField(this.getClassNode(), f));
+                fields.add(new Field(this.getClassNode(), f));
                 break;
             }
         }
@@ -204,22 +204,22 @@ public class InheritanceNode {
         return this.classNode.superName;
     }
 
-    public Set<RSMethod> getMethodsImplementedFromJava() {
+    public Set<Method> getMethodsImplementedFromJava() {
         return getMethodsImplementedFromJava(this.getInterfaces(), new HashSet<>());
     }
 
-    public Set<RSMethod> getMethodsInheritedFromJava() {
+    public Set<Method> getMethodsInheritedFromJava() {
         return getMethodsInheritedFromJava(this.getSuperClassNode(), new HashSet<>());
     }
 
-    public Set <RSMethod> getJavaMethodsInHierarchy() {
-        Set<RSMethod> output = getMethodsInheritedFromJava();
+    public Set <Method> getJavaMethodsInHierarchy() {
+        Set<Method> output = getMethodsInheritedFromJava();
         output.addAll(getMethodsImplementedFromJava());
         return output;
     }
 
-    public Set<RSMethod> computeCallEdges(int opcode, String name, String descriptor) {
-        Set<RSMethod> resolvedMethods = new HashSet<>();
+    public Set<Method> computeCallEdges(int opcode, String name, String descriptor) {
+        Set<Method> resolvedMethods = new HashSet<>();
         switch (opcode) {
             case Opcode.INVOKEINTERFACE:
                 //Invoke Interface methods
@@ -242,7 +242,7 @@ public class InheritanceNode {
         return resolvedMethods;
     }
 
-    private void iterateSuperclassMethods(String name, String descriptor, Set<RSMethod> resolvedMethods) {
+    private void iterateSuperclassMethods(String name, String descriptor, Set<Method> resolvedMethods) {
         if(this.getName().equals(OBJECT)) {
             return;
         }
@@ -251,20 +251,20 @@ public class InheritanceNode {
     }
 
 
-    private void iterateInterfaceMethods(String name, String descriptor, Set<RSMethod> resolvedMethods) {
+    private void iterateInterfaceMethods(String name, String descriptor, Set<Method> resolvedMethods) {
         iterateMethods(name, descriptor, resolvedMethods);
         this.getInterfaces().forEach(inter -> inter.iterateInterfaceMethods(name, descriptor, resolvedMethods));
     }
 
-    private void iterateSubclassMethods(String name, String descriptor, Set<RSMethod> resolvedMethods) {
+    private void iterateSubclassMethods(String name, String descriptor, Set<Method> resolvedMethods) {
         iterateMethods(name, descriptor, resolvedMethods);
         this.getSubClasses().forEach(subClass -> subClass.iterateSubclassMethods(name, descriptor, resolvedMethods));
     }
 
-    private void iterateMethods(String name, String descriptor, Set<RSMethod> resolvedMethods) {
+    private void iterateMethods(String name, String descriptor, Set<Method> resolvedMethods) {
         for(MethodNode method: this.getMethods()) {
             if(method.name.equals(name) && method.desc.equals(descriptor)) {
-                resolvedMethods.add(new RSMethod(this.getClassNode(), method));
+                resolvedMethods.add(new Method(this.getClassNode(), method));
                 break;
             }
         }

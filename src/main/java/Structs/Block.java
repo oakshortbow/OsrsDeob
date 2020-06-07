@@ -34,28 +34,17 @@ public class Block {
     }
 
     public Block merge(List<Block> blocks) {
-
         List<AbstractInsnNode> instructions = new ArrayList<>(this.instructions);
-        blocks.forEach(block -> instructions.addAll(block.instructions));
+        List<AbstractInsnNode> mergingIns = new ArrayList<>();
+
+        blocks.forEach(block -> mergingIns.addAll(block.instructions));
         //Removing ASM Constructs for all except first block
-        instructions.removeIf(ins -> ins.getOpcode() == -1);
+        //mergingIns.removeIf(ins -> ins.getOpcode() == -1);
+        instructions.addAll(mergingIns);
 
-        AbstractInsnNode lastIns = instructions.get(instructions.size() -1);
-        //Stripping all jump instructions from the new block except for the last instruction
-        instructions.removeIf(ins -> !ins.equals(lastIns) && (ins instanceof JumpInsnNode || ins instanceof LookupSwitchInsnNode || ins instanceof TableSwitchInsnNode));
-
-        if(lastIns instanceof JumpInsnNode) {
-            JumpInsnNode ins = (JumpInsnNode) lastIns;
-            //Set New Jump Target
-        }
-        else if(lastIns instanceof LookupSwitchInsnNode) {
-            LookupSwitchInsnNode ins = (LookupSwitchInsnNode) lastIns;
-            //Set New Jump Target
-        }
-        else if (lastIns instanceof TableSwitchInsnNode) {
-            TableSwitchInsnNode ins = (TableSwitchInsnNode) lastIns;
-            //Set TableSwitchInsNode Jump Targets
-        }
+        Block lastBlock = blocks.get(blocks.size() - 1);
+        //Stripping all jump instructions from the new block except for the last block
+        instructions.removeIf(ins -> !lastBlock.getInstructions().contains(ins) && (ins instanceof JumpInsnNode || ins instanceof LookupSwitchInsnNode || ins instanceof TableSwitchInsnNode));
 
         //These Aren't accurate index's after the blocks get merged, more so the index's of the parent block all blocks were merged into
         return new Block(firstIndex, lastIndex, instructions);

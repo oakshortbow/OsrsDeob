@@ -1,8 +1,8 @@
 package Data;
 
 import Wrappers.ClassWriterComputeFrames;
-import Wrappers.RSField;
-import Wrappers.RSMethod;
+import Wrappers.Field;
+import Wrappers.Method;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.ClassNode;
 
@@ -18,8 +18,8 @@ import java.util.jar.Manifest;
 public class Gamepack {
 
     private Set<ClassNode> rsClasses = new HashSet<>();
-    private Set<RSField> rsFields = new HashSet<>();
-    private Set<RSMethod> rsMethods = new HashSet<>();
+    private Set<Field> rsFields = new HashSet<>();
+    private Set<Method> rsMethods = new HashSet<>();
 
     private static Gamepack gamepack = null;
 
@@ -42,8 +42,8 @@ public class Gamepack {
                     ClassReader reader = new ClassReader(jar.getInputStream(entry));
                     reader.accept(classNode, ClassReader.SKIP_FRAMES);
                     rsClasses.add(classNode);
-                    classNode.methods.forEach(m -> rsMethods.add(new RSMethod(classNode, m)));
-                    classNode.fields.forEach(f -> rsFields.add(new RSField(classNode, f)));
+                    classNode.methods.forEach(m -> rsMethods.add(new Method(classNode, m)));
+                    classNode.fields.forEach(f -> rsFields.add(new Field(classNode, f)));
                 }
             }
         }
@@ -63,20 +63,20 @@ public class Gamepack {
         return rsClasses;
     }
 
-    public Set<RSMethod> getAllMethods() {
+    public Set<Method> getAllMethods() {
         return rsMethods;
     }
 
-    public Set<RSField> getAllFields() {
+    public Set<Field> getAllFields() {
         return rsFields;
     }
 
-    public void removeField(RSField field) {
+    public void removeField(Field field) {
         field.getClassNode().fields.remove(field.getFieldNode());
         rsFields.remove(field);
     }
 
-    public void removeMethod(RSMethod method) {
+    public void removeMethod(Method method) {
         method.getClassNode().methods.remove(method.getMethodNode());
         rsMethods.remove(method);
     }

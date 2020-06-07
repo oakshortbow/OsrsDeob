@@ -1,6 +1,5 @@
 package Wrappers;
 
-import Wrappers.InheritanceNode;
 import org.objectweb.asm.ClassWriter;
 
 public class ClassWriterComputeFrames extends ClassWriter {

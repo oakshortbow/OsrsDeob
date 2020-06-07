@@ -6,16 +6,14 @@ import org.objectweb.asm.tree.*;
 import java.util.List;
 import java.util.Objects;
 
-public class RSMethod {
+public class Method {
 
     private ClassNode classNode;
     private MethodNode methodNode;
-    private FlowAnalyzer flowAnalyzer;
 
-    public RSMethod(ClassNode classNode, MethodNode methodNode) {
+    public Method(ClassNode classNode, MethodNode methodNode) {
         this.classNode = classNode;
         this.methodNode = methodNode;
-        flowAnalyzer = new FlowAnalyzer(this);
     }
 
     public ClassNode getClassNode() {
@@ -27,23 +25,11 @@ public class RSMethod {
         return methodNode;
     }
 
-    public Graph<Block> generateCfg() {
-        return flowAnalyzer.createFlowGraph();
-    }
-
-    public List<Block> getBlocks() {
-        return flowAnalyzer.getBlocks(false);
-    }
-
-    public List<Block> getReducedBlocks() {
-        return flowAnalyzer.getBlocks(true);
-    }
-
     @Override
     public boolean equals(Object other) {
-        RSMethod m;
-        if (other instanceof RSMethod) {
-            m = (RSMethod) other;
+        Method m;
+        if (other instanceof Method) {
+            m = (Method) other;
         } else {
             return false;
         }

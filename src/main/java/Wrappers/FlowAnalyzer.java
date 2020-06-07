@@ -2,7 +2,7 @@ package Wrappers;
 
 import Structs.Block;
 import Structs.Graph;
-import Wrappers.RSMethod;
+import org.objectweb.asm.Label;
 import org.objectweb.asm.tree.*;
 import org.objectweb.asm.tree.analysis.Analyzer;
 import org.objectweb.asm.tree.analysis.AnalyzerException;
@@ -17,9 +17,9 @@ public class FlowAnalyzer extends Analyzer<BasicValue> {
     private Graph<Block> graph;
     private List<Block> blocks;
     private List<Block> reducedBlocks;
-    private RSMethod method;
+    private Method method;
 
-    public FlowAnalyzer(RSMethod method) {
+    public FlowAnalyzer(Method method) {
         super(new BasicInterpreter());
         this.method = method;
     }
@@ -46,9 +46,7 @@ public class FlowAnalyzer extends Analyzer<BasicValue> {
             if(insn.getNext() == null) {
                 break;
             }
-            if(insn instanceof JumpInsnNode ||
-                    insn instanceof LookupSwitchInsnNode ||
-                    insn instanceof TableSwitchInsnNode) {
+            if(insn.getNext() instanceof LabelNode) {
                 blockIndex++;
                 blocks.add(new Block());
             }
@@ -67,7 +65,7 @@ public class FlowAnalyzer extends Analyzer<BasicValue> {
     }
 
     private void reduceBlocks() {
-        reducedBlocks = new ArrayList<>();
+        reducedBlocks = new ArrayList<>(blocks);
         List<Block> visitedBlocks = new ArrayList<>();
 
         for(Block b: graph.DFS()) {
@@ -77,11 +75,20 @@ public class FlowAnalyzer extends Analyzer<BasicValue> {
 
             List<Block> mergableBlocks = b.getMergableBlocks(graph);
             visitedBlocks.addAll(mergableBlocks);
-            reducedBlocks.add(b.merge(mergableBlocks));
+            reducedBlocks.removeAll(mergableBlocks);
+            reducedBlocks.set(reducedBlocks.indexOf(b), b.merge(mergableBlocks));
         }
-        reducedBlocks.sort(Comparator.comparing(Block::getFirstIndex));
     }
 
+
+    public InsnList getReducedInstructions() {
+        if(reducedBlocks == null) {
+            getBlocks(true);
+        }
+        InsnList list = new InsnList();
+        reducedBlocks.forEach(blocks -> blocks.getInstructions().forEach(list::add));
+        return list;
+    }
 
     public Graph<Block> createFlowGraph() {
         if(graph == null) {

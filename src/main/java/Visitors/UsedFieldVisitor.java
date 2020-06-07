@@ -1,16 +1,16 @@
 package Visitors;
 
 import Wrappers.InheritanceNode;
-import Wrappers.RSField;
+import Wrappers.Field;
 import org.objectweb.asm.MethodVisitor;
 
 import java.util.Set;
 
 public class UsedFieldVisitor extends MethodVisitor {
 
-    private Set<RSField> rsFields;
+    private Set<Field> rsFields;
 
-    public UsedFieldVisitor(Set<RSField> rsFields) {
+    public UsedFieldVisitor(Set<Field> rsFields) {
         super(524288);
         this.rsFields = rsFields;
     }

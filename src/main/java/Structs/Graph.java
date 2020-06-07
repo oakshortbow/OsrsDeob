@@ -137,11 +137,6 @@ public class Graph<T> {
         return !isEdge(s) && map.get(s).isEmpty();
     }
 
-    public void trimLeaves() {
-        map.keySet().removeIf(key -> map.get(key).isEmpty());
-    }
-
-
     public Map<T, List<T>> getMap() {
         return map;
     }
