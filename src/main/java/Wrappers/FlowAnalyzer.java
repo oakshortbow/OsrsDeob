@@ -2,7 +2,6 @@ package Wrappers;
 
 import Structs.Block;
 import Structs.Graph;
-import org.objectweb.asm.Label;
 import org.objectweb.asm.tree.*;
 import org.objectweb.asm.tree.analysis.Analyzer;
 import org.objectweb.asm.tree.analysis.AnalyzerException;
@@ -16,7 +15,6 @@ public class FlowAnalyzer extends Analyzer<BasicValue> {
 
     private Graph<Block> graph;
     private List<Block> blocks;
-    private List<Block> reducedBlocks;
     private Method method;
 
     public FlowAnalyzer(Method method) {
@@ -24,17 +22,13 @@ public class FlowAnalyzer extends Analyzer<BasicValue> {
         this.method = method;
     }
 
-    private void initializeBlocks() {
+    @Override
+    protected void init(String owner, MethodNode method) {
         blocks = new ArrayList<>();
 
-        InsnList insnList = method.getMethodNode().instructions;
-        int blockIndex = 0;
+        InsnList insnList = method.instructions;
 
-        for(int i = 0; i < insnList.size(); i++) {
-            if(insnList.get(i) instanceof LineNumberNode) {
-                insnList.remove(insnList.get(i));
-            }
-        }
+        int blockIndex = 0;
 
         if(insnList.size() > 0) {
             blocks.add(new Block());
@@ -46,7 +40,7 @@ public class FlowAnalyzer extends Analyzer<BasicValue> {
             if(insn.getNext() == null) {
                 break;
             }
-            if(insn.getNext() instanceof LabelNode) {
+            else if(insn.getNext() instanceof LabelNode) {
                 blockIndex++;
                 blocks.add(new Block());
             }
@@ -55,44 +49,33 @@ public class FlowAnalyzer extends Analyzer<BasicValue> {
 
     @Override
     protected void newControlFlowEdge(int insnIndex, int successorIndex) {
-        graph.addEdge(getBlockByIndex(insnIndex), getBlockByIndex(successorIndex));
+        Block firstBlock = getBlockByIndex(insnIndex);
+        Block secondBlock = getBlockByIndex(successorIndex);
+
+        graph.addEdge(firstBlock, secondBlock);
+
+        if(!firstBlock.equals(secondBlock) && insnIndex + 1 == successorIndex) {
+            firstBlock.setImmediateSuccessor(secondBlock);
+        }
     }
 
     @Override
     protected boolean newControlFlowExceptionEdge(int insnIndex, int successorIndex) {
-        graph.addEdge(getBlockByIndex(insnIndex), getBlockByIndex(successorIndex));
+        Block firstBlock = getBlockByIndex(insnIndex);
+        Block secondBlock = getBlockByIndex(successorIndex);
+
+        graph.addEdge(firstBlock, secondBlock);
+
+        if(!firstBlock.equals(secondBlock) && insnIndex + 1 == successorIndex) {
+            firstBlock.setImmediateSuccessor(secondBlock);
+        }
         return true;
     }
 
-    private void reduceBlocks() {
-        reducedBlocks = new ArrayList<>(blocks);
-        List<Block> visitedBlocks = new ArrayList<>();
-
-        for(Block b: graph.DFS()) {
-            if(visitedBlocks.contains(b) || b.getMergableBlocks(graph).isEmpty()) {
-                continue;
-            }
-
-            List<Block> mergableBlocks = b.getMergableBlocks(graph);
-            visitedBlocks.addAll(mergableBlocks);
-            reducedBlocks.removeAll(mergableBlocks);
-            reducedBlocks.set(reducedBlocks.indexOf(b), b.merge(mergableBlocks));
-        }
-    }
 
 
-    public InsnList getReducedInstructions() {
-        if(reducedBlocks == null) {
-            getBlocks(true);
-        }
-        InsnList list = new InsnList();
-        reducedBlocks.forEach(blocks -> blocks.getInstructions().forEach(list::add));
-        return list;
-    }
-
-    public Graph<Block> createFlowGraph() {
+    public Graph<Block> getGraph() {
         if(graph == null) {
-            initializeBlocks();
             graph = new Graph<>();
             try {
                 analyze(method.getClassNode().name, method.getMethodNode());
@@ -112,20 +95,11 @@ public class FlowAnalyzer extends Analyzer<BasicValue> {
         return null;
     }
 
-    public List<Block> getBlocks(boolean reduce) {
-        if(graph == null) {
-            createFlowGraph();
+    public List<Block> getBlocks() {
+        if (graph == null) {
+            getGraph();
         }
-
-        if(reduce) {
-            if(reducedBlocks == null) {
-                reduceBlocks();
-            }
-            return reducedBlocks;
-        }
-
         return blocks;
     }
-
 
 }

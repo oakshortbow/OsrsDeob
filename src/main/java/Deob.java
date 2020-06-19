@@ -1,8 +1,5 @@
 import Data.Gamepack;
-import Deobfuscators.Deobfuscator;
-import Deobfuscators.ControlFlowDeobfuscator;
-import Deobfuscators.UnusedFieldDeobfuscator;
-import Deobfuscators.UnusedMethodDeobfuscator;
+import Deobfuscators.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +13,8 @@ public class Deob {
 
         deobfuscator.add(new UnusedMethodDeobfuscator());
         deobfuscator.add(new UnusedFieldDeobfuscator());
+        deobfuscator.add(new RuntimeExceptionDeobfuscator());
+
         deobfuscator.add(new ControlFlowDeobfuscator());
 
         deobfuscator.forEach(Deobfuscator::execute);

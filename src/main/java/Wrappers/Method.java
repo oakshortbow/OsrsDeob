@@ -38,7 +38,7 @@ public class Method {
 
     @Override
     public String toString() {
-        return getClassNode().name + "." + getMethodNode().name;
+        return getClassNode().name + "." + getMethodNode().name + ":" + getMethodNode().desc;
     }
 
     @Override

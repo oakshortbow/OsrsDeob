@@ -4,6 +4,7 @@ import Wrappers.ClassWriterComputeFrames;
 import Wrappers.Field;
 import Wrappers.Method;
 import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.ClassNode;
 
 import java.io.FileOutputStream;
@@ -63,7 +64,7 @@ public class Gamepack {
         return rsClasses;
     }
 
-    public Set<Method> getAllMethods() {
+    public Set<Method> getMethods() {
         return rsMethods;
     }
 
@@ -104,6 +105,7 @@ public class Gamepack {
 
 
     public void saveJar() {
+        System.out.println("\nSaving Deobfuscated Jar..");
         try {
             JarOutputStream jarOut = new JarOutputStream(new FileOutputStream(OUTPUT_PATH), new Manifest());
             for (ClassNode c : this.getClasses()) {

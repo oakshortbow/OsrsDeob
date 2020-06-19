@@ -1,5 +1,6 @@
 package Structs;
 
+import org.objectweb.asm.Label;
 import org.objectweb.asm.tree.*;
 
 import java.util.*;
@@ -9,6 +10,7 @@ public class Block {
     private List<AbstractInsnNode> instructions = new ArrayList<>();
     private int firstIndex = 0;
     private int lastIndex = 0;
+    private Block successor;
 
 
 
@@ -33,51 +35,19 @@ public class Block {
         return index >= firstIndex && index <= lastIndex;
     }
 
-    public Block merge(List<Block> blocks) {
-        List<AbstractInsnNode> instructions = new ArrayList<>(this.instructions);
-        List<AbstractInsnNode> mergingIns = new ArrayList<>();
-
-        blocks.forEach(block -> mergingIns.addAll(block.instructions));
-        //Removing ASM Constructs for all except first block
-        //mergingIns.removeIf(ins -> ins.getOpcode() == -1);
-        instructions.addAll(mergingIns);
-
-        Block lastBlock = blocks.get(blocks.size() - 1);
-        //Stripping all jump instructions from the new block except for the last block
-        instructions.removeIf(ins -> !lastBlock.getInstructions().contains(ins) && (ins instanceof JumpInsnNode || ins instanceof LookupSwitchInsnNode || ins instanceof TableSwitchInsnNode));
-
-        //These Aren't accurate index's after the blocks get merged, more so the index's of the parent block all blocks were merged into
-        return new Block(firstIndex, lastIndex, instructions);
-    }
 
     public List<Block> getMergableBlocks(Graph<Block> cfGraph) {
         List<Block> blocks = new ArrayList<>();
-
-        if(cfGraph.getEdgesForNodeCount(this) != 1 || cfGraph.isEdgeCount(cfGraph.getEdges(this).get(0)) > 1) {
-            return blocks;
-        }
-
-        Block currentBlock = cfGraph.getEdges(this).get(0);
-        blocks.add(currentBlock);
-
+        Block currentBlock = this;
         while(cfGraph.getEdgesForNodeCount(currentBlock) == 1 && cfGraph.isEdgeCount(cfGraph.getEdges(currentBlock).get(0)) == 1) {
             currentBlock = cfGraph.getEdges(currentBlock).get(0);
             blocks.add(currentBlock);
         }
-
         return blocks;
     }
 
     public List<AbstractInsnNode> getInstructions() {
         return instructions;
-    }
-
-    public int getFirstIndex() {
-        return firstIndex;
-    }
-
-    public int getLastIndex() {
-        return lastIndex;
     }
 
     @Override
@@ -90,6 +60,22 @@ public class Block {
             return false;
         }
         return this.firstIndex == o.firstIndex && this.lastIndex == o.lastIndex;
+    }
+
+    public boolean hasImmediateSuccessor() {
+        return successor != null;
+    }
+
+    public void setImmediateSuccessor(Block b) {
+        successor = b;
+    }
+
+    public Block getImmediateSuccessor() {
+        return successor;
+    }
+
+    public LabelNode getLabelNode() {
+        return (LabelNode)instructions.get(0);
     }
 
     @Override

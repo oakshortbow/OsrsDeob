@@ -6,35 +6,36 @@ import Structs.Graph;
 import Wrappers.FlowAnalyzer;
 import Wrappers.Method;
 import com.triptheone.joda.Stopwatch;
-import org.objectweb.asm.tree.AbstractInsnNode;
-import org.objectweb.asm.tree.InsnList;
-
-import java.util.ArrayList;
-import java.util.List;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.tree.JumpInsnNode;
 
 public class ControlFlowDeobfuscator implements Deobfuscator {
 
+    /*
+        Not happy with current implementation
+        would rather reduce and reorder rather then expand and reorder
+        TODO Reduce Blocks and reorder them
+     */
     @Override
     public void execute() {
         Stopwatch s = Stopwatch.start();
         System.out.println("\nFixing Control Flow..");
+        int jumps = 0;
 
+        for(Method m: Gamepack.getInstance().getMethods()) {
 
-        for(Method m: Gamepack.getInstance().getAllMethods()) {
-            if(m.getMethodNode().instructions.size() == 0) {
+            //TODO Find a way to reorder control flow without excluding methods with tryCatchBlocks
+            if(m.getMethodNode().instructions.size() == 0 || !m.getMethodNode().tryCatchBlocks.isEmpty()) {
                 continue;
             }
+
+            System.out.println("Reordering " + m);
             FlowAnalyzer flow = new FlowAnalyzer(m);
-            Graph<Block> graph = flow.createFlowGraph();
-            if(flow.getBlocks(true).size() != 1 || (flow.getBlocks(true).size() == flow.getBlocks(false).size())) {
-                continue;
-            }
-            System.out.println(m);
-            printGraph(graph);
-            for(Block b: flow.getBlocks(true)) {
-                System.out.println(b);
-                for(AbstractInsnNode ins: b.getInstructions()) {
-                    System.out.println(ins);
+
+            for(Block b: flow.getBlocks()) {
+                if(b.hasImmediateSuccessor()) {
+                    jumps++;
+                    b.getInstructions().add(new JumpInsnNode(Opcodes.GOTO, b.getImmediateSuccessor().getLabelNode()));
                 }
             }
 
@@ -42,18 +43,13 @@ public class ControlFlowDeobfuscator implements Deobfuscator {
                 m.getMethodNode().instructions.remove(m.getMethodNode().instructions.getFirst());
             }
 
-            m.getMethodNode().instructions = flow.getReducedInstructions();
-
-            System.out.println("NEW INSTRUCTIONS");
-
-            AbstractInsnNode currentIns = m.getMethodNode().instructions.getFirst();
-            while(currentIns != null) {
-                System.out.println(currentIns);
-                currentIns = currentIns.getNext();
+            for (Block b : flow.getGraph().DFS()) {
+                b.getInstructions().forEach(ins -> m.getMethodNode().instructions.add(ins));
             }
-
         }
 
+
+        System.out.println("Inserted " + jumps + " Jumps");
         System.out.println("Control Flow done in " + s.getElapsedTime().getMillis()/1000.0F + " Seconds");
     }
 

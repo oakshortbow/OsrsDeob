@@ -13,16 +13,18 @@ public class UnusedFieldDeobfuscator implements Deobfuscator {
 
     private Set<Field> usedFields = new HashSet<>();
 
+
+    //Removes Unused Fields by tracking usage
     @Override
     public void execute() {
         Stopwatch s = Stopwatch.start();
         System.out.println("\nFinding Unused Fields..");
 
         MethodVisitor visitor = new UsedFieldVisitor(usedFields);
-        Gamepack.getInstance().getAllMethods().forEach(method -> method.getMethodNode().accept(visitor));
+        Gamepack.getInstance().getMethods().forEach(method -> method.getMethodNode().accept(visitor));
 
         Set<Field> unusedFields = getUnusedFields();
-        System.out.println("\nFound " + usedFields.size() + "/" + Gamepack.getInstance().getAllFields().size() + " (" + unusedFields.size() + " Unused)");
+        System.out.println("Found " + usedFields.size() + "/" + Gamepack.getInstance().getAllFields().size() + " (" + unusedFields.size() + " Unused)");
 
         unusedFields.forEach(field -> Gamepack.getInstance().removeField(field));
         System.out.println("Unused Fields Removed in " + s.getElapsedTime().getMillis()/1000.0F + " Seconds");

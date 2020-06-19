@@ -12,6 +12,13 @@ import java.util.Set;
 
 public class UnusedMethodDeobfuscator implements Deobfuscator {
 
+    /*
+    Finds Entry Points
+    Builds Call Graph
+    Removes Unhit methods
+    Requires Multiple passes to be efficient
+     */
+
     @Override
     public void execute() {
         Stopwatch s = Stopwatch.start();
@@ -21,14 +28,11 @@ public class UnusedMethodDeobfuscator implements Deobfuscator {
 
         Gamepack.getInstance().getClasses().forEach(node -> entryPoints.addAll(InheritanceNode.get(node).getJavaMethodsInHierarchy()));
 
-        System.out.println("Found " + entryPoints.size() + " Entry Points!");
-        System.out.println("Building Method Call Graph..");
-
         Graph<Method> callGraph = new Graph<>();
         entryPoints.forEach(callGraph::addNode);
         entryPoints.forEach(entryPoint -> entryPoint.getMethodNode().accept(new UsedMethodVisitor(callGraph, entryPoint)));
 
-        System.out.println("\nFound " + getUsedMethods(callGraph).size() + "/" + Gamepack.getInstance().getAllMethods().size() + " (" + (getUnusedMethods(callGraph).size()) + " Unused)");
+        System.out.println("Found " + getUsedMethods(callGraph).size() + "/" + Gamepack.getInstance().getMethods().size() + " (" + (getUnusedMethods(callGraph).size()) + " Unused)");
 
         getUnusedMethods(callGraph).forEach(rsMethod -> Gamepack.getInstance().removeMethod(rsMethod));
         System.out.println("Unused Methods Removed in " + s.getElapsedTime().getMillis()/1000.0F + " Seconds");
@@ -39,7 +43,7 @@ public class UnusedMethodDeobfuscator implements Deobfuscator {
     public Set<Method> getUsedMethods(Graph<Method> callGraph) {
         Set<Method> usedMethods =  new HashSet<>();
         for(Method m : callGraph.getNodes()) {
-            if(Gamepack.getInstance().getAllMethods().contains(m)) {
+            if(Gamepack.getInstance().getMethods().contains(m)) {
                 usedMethods.add(m);
             }
         }
@@ -48,7 +52,7 @@ public class UnusedMethodDeobfuscator implements Deobfuscator {
     }
 
     public Set<Method> getUnusedMethods(Graph<Method> callGraph) {
-        Set<Method> allMethods = new HashSet<>(Gamepack.getInstance().getAllMethods());
+        Set<Method> allMethods = new HashSet<>(Gamepack.getInstance().getMethods());
         allMethods.removeAll(getUsedMethods(callGraph));
         return allMethods;
     }

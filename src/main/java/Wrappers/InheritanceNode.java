@@ -1,6 +1,5 @@
 package Wrappers;
 
-import Data.Opcode;
 import Data.Gamepack;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.ClassNode;
@@ -25,17 +24,17 @@ public class InheritanceNode {
     }
 
     private List<String> getSubClassStrings() {
-        List<String> strings = new ArrayList<>();
+        List<String> subclasses = new ArrayList<>();
         for(ClassNode c: Gamepack.getInstance().getClasses()) {
             if(c.superName.equals(classNode.name)){
-                strings.add(c.name);
+                subclasses.add(c.name);
             }
 
             if(c.interfaces.contains(this.getName())) {
-                strings.add(c.name);
+                subclasses.add(c.name);
             }
         }
-        return strings;
+        return subclasses;
     }
 
     public InheritanceNode getSuperClassNode() {
@@ -221,18 +220,18 @@ public class InheritanceNode {
     public Set<Method> computeCallEdges(int opcode, String name, String descriptor) {
         Set<Method> resolvedMethods = new HashSet<>();
         switch (opcode) {
-            case Opcode.INVOKEINTERFACE:
+            case Opcodes.INVOKEINTERFACE:
                 //Invoke Interface methods
-            case Opcode.INVOKEVIRTUAL:
+            case Opcodes.INVOKEVIRTUAL:
                 //invokes public or protected instance methods
                 iterateMethods(name, descriptor, resolvedMethods);
                 this.getSubClasses().forEach(subClass -> subClass.iterateSubclassMethods(name, descriptor, resolvedMethods));
                 this.getInterfaces().forEach(inter -> inter.iterateInterfaceMethods(name, descriptor, resolvedMethods));
                 this.getSuperClassNode().iterateSuperclassMethods(name, descriptor, resolvedMethods);
                 break;
-            case Opcode.INVOKESPECIAL:
+            case Opcodes.INVOKESPECIAL:
                 //invokes constructors, private methods, methods in superclasses
-            case Opcode.INVOKESTATIC:
+            case Opcodes.INVOKESTATIC:
                 //Invokes static
                 iterateMethods(name, descriptor, resolvedMethods);
                 this.getInterfaces().forEach(inter -> inter.iterateInterfaceMethods(name, descriptor, resolvedMethods));
