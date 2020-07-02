@@ -4,6 +4,7 @@ import Structs.Graph;
 import Wrappers.InheritanceNode;
 import Wrappers.Method;
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 
 import java.util.Set;
 
@@ -13,7 +14,7 @@ public class UsedMethodVisitor extends MethodVisitor {
     private Method caller;
 
     public UsedMethodVisitor(Graph<Method> callGraph, Method caller) {
-        super(524288);
+        super(Opcodes.ASM8);
         this.callGraph = callGraph;
         this.caller = caller;
     }

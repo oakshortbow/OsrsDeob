@@ -1,5 +1,6 @@
 package Structs;
 
+import Wrappers.Method;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.tree.*;
 
@@ -11,6 +12,7 @@ public class Block {
     private int firstIndex = 0;
     private int lastIndex = 0;
     private Block successor;
+
 
 
 
@@ -59,7 +61,7 @@ public class Block {
         else {
             return false;
         }
-        return this.firstIndex == o.firstIndex && this.lastIndex == o.lastIndex;
+        return this.getLabelNode().equals(o.getLabelNode());
     }
 
     public boolean hasImmediateSuccessor() {
@@ -82,6 +84,5 @@ public class Block {
     public String toString() {
         return firstIndex + "-" + lastIndex;
     }
-
 
 }

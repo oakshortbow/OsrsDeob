@@ -14,8 +14,10 @@ public class Deob {
         deobfuscator.add(new UnusedMethodDeobfuscator());
         deobfuscator.add(new UnusedFieldDeobfuscator());
         deobfuscator.add(new RuntimeExceptionDeobfuscator());
-
+        deobfuscator.add(new DeadCodeDeobfuscator());
         deobfuscator.add(new ControlFlowDeobfuscator());
+        deobfuscator.add(new GotoDeobfuscator());
+
 
         deobfuscator.forEach(Deobfuscator::execute);
 

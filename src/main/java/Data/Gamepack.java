@@ -24,9 +24,9 @@ public class Gamepack {
 
     private static Gamepack gamepack = null;
 
-    private static final String GAMEPACK_NAME = "189.jar";
+    private static final String GAMEPACK_NAME = "190.jar";
 
-    private static final String OUTPUT_PATH = "src/test/resources/189-deob.jar";
+    private static final String OUTPUT_PATH = "src/test/resources/190-deob.jar";
 
 
     private Gamepack(String path) {

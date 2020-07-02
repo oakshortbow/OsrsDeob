@@ -45,6 +45,10 @@ public class FlowAnalyzer extends Analyzer<BasicValue> {
                 blocks.add(new Block());
             }
         }
+
+        for(Block b: blocks) {
+
+        }
     }
 
     @Override
@@ -52,26 +56,25 @@ public class FlowAnalyzer extends Analyzer<BasicValue> {
         Block firstBlock = getBlockByIndex(insnIndex);
         Block secondBlock = getBlockByIndex(successorIndex);
 
+        assert firstBlock != null && secondBlock != null;
+
         graph.addEdge(firstBlock, secondBlock);
 
-        if(!firstBlock.equals(secondBlock) && insnIndex + 1 == successorIndex) {
+        if(firstBlock != secondBlock && insnIndex + 1 == successorIndex) {
             firstBlock.setImmediateSuccessor(secondBlock);
         }
     }
 
     @Override
-    protected boolean newControlFlowExceptionEdge(int insnIndex, int successorIndex) {
+    protected boolean newControlFlowExceptionEdge(int insnIndex, TryCatchBlockNode tryCatchBlock) {
         Block firstBlock = getBlockByIndex(insnIndex);
-        Block secondBlock = getBlockByIndex(successorIndex);
+        Block secondBlock = getBlockByLabelNode(tryCatchBlock.handler);
+
+        assert firstBlock != null && secondBlock != null;
 
         graph.addEdge(firstBlock, secondBlock);
-
-        if(!firstBlock.equals(secondBlock) && insnIndex + 1 == successorIndex) {
-            firstBlock.setImmediateSuccessor(secondBlock);
-        }
         return true;
     }
-
 
 
     public Graph<Block> getGraph() {
@@ -89,6 +92,15 @@ public class FlowAnalyzer extends Analyzer<BasicValue> {
     private Block getBlockByIndex(int index) {
         for(Block b: blocks) {
             if(b.hasIndex(index)) {
+                return b;
+            }
+        }
+        return null;
+    }
+
+    public Block getBlockByLabelNode(LabelNode node) {
+        for(Block b: blocks) {
+            if(b.getLabelNode().equals(node)) {
                 return b;
             }
         }

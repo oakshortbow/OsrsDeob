@@ -9,7 +9,7 @@ public class Main extends JFrame
 {
     private static final int WIDTH = 765;
     private static final int HEIGHT = 503;
-    private static URL PATH = ClassLoader.getSystemClassLoader().getResource("189-deob.jar");
+    private static URL PATH = ClassLoader.getSystemClassLoader().getResource("190-deob.jar");
 
     public Main() throws ClassNotFoundException, IllegalAccessException, InstantiationException {
         this.setSize(800, 600);

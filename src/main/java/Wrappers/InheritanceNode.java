@@ -14,7 +14,6 @@ public class InheritanceNode {
 
     private List<InheritanceNode> subClasses = new ArrayList<>();
     private List<InheritanceNode> interfaces = new ArrayList<>();
-
     private static final String OBJECT = "java/lang/Object";
 
     public static Map<String, InheritanceNode> nodeFlyweight = new HashMap<>();
@@ -25,12 +24,12 @@ public class InheritanceNode {
 
     private List<String> getSubClassStrings() {
         List<String> subclasses = new ArrayList<>();
-        for(ClassNode c: Gamepack.getInstance().getClasses()) {
-            if(c.superName.equals(classNode.name)){
+        for (ClassNode c : Gamepack.getInstance().getClasses()) {
+            if (c.superName.equals(classNode.name)) {
                 subclasses.add(c.name);
             }
 
-            if(c.interfaces.contains(this.getName())) {
+            if (c.interfaces.contains(this.getName())) {
                 subclasses.add(c.name);
             }
         }
@@ -50,7 +49,7 @@ public class InheritanceNode {
     }
 
     public List<InheritanceNode> getSubClasses() {
-        if(subClasses.isEmpty()) {
+        if (subClasses.isEmpty()) {
             getSubClassStrings().forEach(s -> subClasses.add(get(s)));
         }
 
@@ -58,7 +57,7 @@ public class InheritanceNode {
     }
 
     public List<InheritanceNode> getInterfaces() {
-        if(interfaces.isEmpty()) {
+        if (interfaces.isEmpty()) {
             classNode.interfaces.forEach(s -> interfaces.add(get(s)));
         }
 
@@ -71,7 +70,7 @@ public class InheritanceNode {
 
 
     public static InheritanceNode get(String className) {
-        if(nodeFlyweight.containsKey(className)) {
+        if (nodeFlyweight.containsKey(className)) {
             return nodeFlyweight.get(className);
         }
 
@@ -85,14 +84,14 @@ public class InheritanceNode {
     }
 
     public String getCommonSuperClass(InheritanceNode other) {
-        if(other.isInterface() || this.isInterface() || this.getName().equals(OBJECT) || other.getName().equals(OBJECT)) {
+        if (other.isInterface() || this.isInterface() || this.getName().equals(OBJECT) || other.getName().equals(OBJECT)) {
             return OBJECT;
         }
 
         List<String> superClasses = other.getAllSuperClasses();
 
         InheritanceNode currentNode = this;
-        while(!superClasses.contains(currentNode.getName())) {
+        while (!superClasses.contains(currentNode.getName())) {
             currentNode = currentNode.getSuperClassNode();
         }
 
@@ -104,7 +103,7 @@ public class InheritanceNode {
         List<String> superClasses = new ArrayList<>();
 
         InheritanceNode currentNode = this;
-        while(!currentNode.getSuperClassNode().getName().equals(OBJECT)) {
+        while (!currentNode.getSuperClassNode().getName().equals(OBJECT)) {
             superClasses.add(currentNode.getName());
             currentNode = currentNode.getSuperClassNode();
         }
@@ -113,7 +112,7 @@ public class InheritanceNode {
     }
 
     public static InheritanceNode get(ClassNode classNode) {
-        if(nodeFlyweight.containsKey(classNode.name)) {
+        if (nodeFlyweight.containsKey(classNode.name)) {
             return nodeFlyweight.get(classNode.name);
         }
         InheritanceNode node = new InheritanceNode(classNode);
@@ -121,19 +120,18 @@ public class InheritanceNode {
         return node;
     }
 
-    public Set<Method> getMethodsInheritedFromJava(InheritanceNode node, Set<Method> methodNodeList)
-    {
-        if(node.isJavaNode()) {
-            for(MethodNode child: this.getMethods()) {
-                for(MethodNode parent : node.getMethods()) {
-                    if(((child.name.equals(parent.name) && child.desc.equals(parent.desc)))) {
+    public Set<Method> getMethodsInheritedFromJava(InheritanceNode node, Set<Method> methodNodeList) {
+        if (node.isJavaNode()) {
+            for (MethodNode child : this.getMethods()) {
+                for (MethodNode parent : node.getMethods()) {
+                    if (((child.name.equals(parent.name) && child.desc.equals(parent.desc)))) {
                         methodNodeList.add(new Method(this.getClassNode(), child));
                     }
                 }
             }
         }
 
-        if(node.getSuperName() != null) {
+        if (node.getSuperName() != null) {
             return getMethodsInheritedFromJava(node.getSuperClassNode(), methodNodeList);
         }
         return methodNodeList;
@@ -142,7 +140,7 @@ public class InheritanceNode {
     public Set<Method> getMethodsImplementedFromJava(List<InheritanceNode> nodes, Set<Method> methodNodeSet) {
 
         for (InheritanceNode startingInterface : nodes) {
-            if(startingInterface.isJavaNode()) {
+            if (startingInterface.isJavaNode()) {
                 for (MethodNode child : this.getMethods()) {
                     for (MethodNode parent : startingInterface.getMethods()) {
                         if (child.name.equals(parent.name) && child.desc.equals(parent.desc)) {
@@ -153,7 +151,7 @@ public class InheritanceNode {
             }
         }
 
-        for(InheritanceNode startingInterface: nodes) {
+        for (InheritanceNode startingInterface : nodes) {
             return getMethodsImplementedFromJava(startingInterface.getInterfaces(), methodNodeSet);
         }
 
@@ -170,7 +168,7 @@ public class InheritanceNode {
     }
 
     private void iterateSuperclassFields(String name, String descriptor, Set<Field> fields) {
-        if(this.getName().equals(OBJECT)) {
+        if (this.getName().equals(OBJECT)) {
             return;
         }
         iterateFields(name, descriptor, fields);
@@ -183,8 +181,8 @@ public class InheritanceNode {
     }
 
     private void iterateFields(String name, String descriptor, Set<Field> fields) {
-        for(FieldNode f: this.getFields()) {
-            if(f.name.equals(name) && f.desc.equals(descriptor)) {
+        for (FieldNode f : this.getFields()) {
+            if (f.name.equals(name) && f.desc.equals(descriptor)) {
                 fields.add(new Field(this.getClassNode(), f));
                 break;
             }
@@ -211,7 +209,7 @@ public class InheritanceNode {
         return getMethodsInheritedFromJava(this.getSuperClassNode(), new HashSet<>());
     }
 
-    public Set <Method> getJavaMethodsInHierarchy() {
+    public Set<Method> getJavaMethodsInHierarchy() {
         Set<Method> output = getMethodsInheritedFromJava();
         output.addAll(getMethodsImplementedFromJava());
         return output;
@@ -242,7 +240,7 @@ public class InheritanceNode {
     }
 
     private void iterateSuperclassMethods(String name, String descriptor, Set<Method> resolvedMethods) {
-        if(this.getName().equals(OBJECT)) {
+        if (this.getName().equals(OBJECT)) {
             return;
         }
         iterateMethods(name, descriptor, resolvedMethods);
@@ -261,8 +259,8 @@ public class InheritanceNode {
     }
 
     private void iterateMethods(String name, String descriptor, Set<Method> resolvedMethods) {
-        for(MethodNode method: this.getMethods()) {
-            if(method.name.equals(name) && method.desc.equals(descriptor)) {
+        for (MethodNode method : this.getMethods()) {
+            if (method.name.equals(name) && method.desc.equals(descriptor)) {
                 resolvedMethods.add(new Method(this.getClassNode(), method));
                 break;
             }
@@ -273,7 +271,7 @@ public class InheritanceNode {
     public String toString() {
         StringBuilder sb = new StringBuilder(this.getName() + " extends " + this.getSuperName());
         getInterfaces().forEach(s -> sb.append("\n----> Implements ").append(s.getName()));
-        if(getSubClasses().size() > 0) {
+        if (getSubClasses().size() > 0) {
             sb.append("\nIs Implemented/Extended By");
             getSubClasses().forEach(s -> sb.append("\n-").append(s.getName()));
         }

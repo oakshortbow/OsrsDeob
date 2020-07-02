@@ -2,7 +2,12 @@ package Wrappers;
 import Structs.Block;
 import Structs.Graph;
 import org.objectweb.asm.tree.*;
+import org.objectweb.asm.tree.analysis.Analyzer;
+import org.objectweb.asm.tree.analysis.AnalyzerException;
+import org.objectweb.asm.tree.analysis.BasicInterpreter;
+import org.objectweb.asm.tree.analysis.Frame;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 

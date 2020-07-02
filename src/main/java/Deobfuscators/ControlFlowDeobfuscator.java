@@ -8,6 +8,12 @@ import Wrappers.Method;
 import com.triptheone.joda.Stopwatch;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.JumpInsnNode;
+import org.objectweb.asm.tree.LabelNode;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class ControlFlowDeobfuscator implements Deobfuscator {
 
@@ -16,6 +22,7 @@ public class ControlFlowDeobfuscator implements Deobfuscator {
         would rather reduce and reorder rather then expand and reorder
         TODO Reduce Blocks and reorder them
      */
+
     @Override
     public void execute() {
         Stopwatch s = Stopwatch.start();
@@ -24,15 +31,21 @@ public class ControlFlowDeobfuscator implements Deobfuscator {
 
         for(Method m: Gamepack.getInstance().getMethods()) {
 
-            //TODO Find a way to reorder control flow without excluding methods with tryCatchBlocks
-            if(m.getMethodNode().instructions.size() == 0 || !m.getMethodNode().tryCatchBlocks.isEmpty()) {
+
+            if(m.getMethodNode().instructions.size() == 0) {
                 continue;
             }
 
-            System.out.println("Reordering " + m);
+            //TODO Find a way to reorder control flow without excluding methods with tryCatchBlocks
+            if(m.getMethodNode().tryCatchBlocks.size() > 0) {
+                continue;
+            }
+
             FlowAnalyzer flow = new FlowAnalyzer(m);
 
-            for(Block b: flow.getBlocks()) {
+            List<Block> blocks = flow.getBlocks();
+
+            for(Block b: blocks) {
                 if(b.hasImmediateSuccessor()) {
                     jumps++;
                     b.getInstructions().add(new JumpInsnNode(Opcodes.GOTO, b.getImmediateSuccessor().getLabelNode()));
@@ -45,6 +58,7 @@ public class ControlFlowDeobfuscator implements Deobfuscator {
 
             for (Block b : flow.getGraph().DFS()) {
                 b.getInstructions().forEach(ins -> m.getMethodNode().instructions.add(ins));
+                blocks.remove(b);
             }
         }
 
